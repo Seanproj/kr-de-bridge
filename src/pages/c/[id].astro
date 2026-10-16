@@ -131,12 +131,12 @@ const v = card.verification;
     {card.mistakes.length > 0 && (
       <section class="relative mt-12 overflow-hidden rounded-[24px] p-5 sm:p-6" style="background:var(--danger-bg);box-shadow:inset 0 0 0 1px var(--danger-line)" aria-labelledby="mistakes">
         <div class="pointer-events-none absolute -top-16 -right-10 text-[160px] leading-none opacity-[0.07] select-none" aria-hidden="true">!</div>
-        <p class="eyebrow !text-[var(--red)]">이 앱의 핵심</p>
+        <p class="eyebrow !text-[var(--red-ink)]">이 앱의 핵심</p>
         <h2 id="mistakes" class="mt-1.5 flex items-center gap-2 text-[21px] font-extrabold tracking-tight">⚠️ 자주 하는 실수</h2>
         <ol class="mt-4 space-y-3">
           {card.mistakes.map((m, i) => (
             <li class="flex gap-3 rounded-2xl p-3.5" style="background:color-mix(in oklab, var(--surface) 75%, transparent)">
-              <span class="grid h-6 w-6 flex-none place-items-center rounded-full font-mono text-[11px] font-bold text-white" style="background:var(--red)">{i + 1}</span>
+              <span class="grid h-6 w-6 flex-none place-items-center rounded-full font-mono text-[11px] font-bold" style="background:var(--red-ink);color:var(--fill-ink)">{i + 1}</span>
               <span class="text-[15px] leading-relaxed">{m}</span>
             </li>
           ))}

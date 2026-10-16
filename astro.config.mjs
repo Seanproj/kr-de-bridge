@@ -8,6 +8,7 @@ const site = process.env.SITE_URL ?? "https://kr-de-bridge.pages.dev";
 const base = process.env.BASE_PATH ?? "/";
 
 export default defineConfig({
+  build: { inlineStylesheets: "always" },
   site,
   base,
   trailingSlash: "always",
@@ -15,6 +16,7 @@ export default defineConfig({
   integrations: [
     AstroPWA({
       registerType: "autoUpdate",
+      injectRegister: false,
       base,
       scope: base,
       includeAssets: ["favicon.svg"],

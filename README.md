@@ -18,6 +18,8 @@ npm run check:data   # data/*.json 스키마·참조 검사
 | `src/schema.mjs` | zod 스키마 (빌드·CI 공용). `verified`는 `checkedAt`+공식 출처 필수 |
 | `src/pages/c/[id].astro` | 카드 상세 (SPEC 5.2 순서 고정) |
 | `src/pages/s/[id].astro` | 시나리오 체크리스트 (localStorage) |
+| `src/pages/status.astro` | 정보 현황판 — 확인 상태·남은 확인 항목·대조할 공식 출처 |
+| `src/styles/pretendard.css` | 생성 파일 (`node scripts/gen-font-css.mjs`) — font-display: optional |
 | `scripts/gen-og.mjs` | 카드별 OG 이미지 생성 (Playwright) — 제목이 바뀌면 다시 실행 |
 | `scripts/gen-icons.mjs` | PWA 아이콘 생성 |
 | `scripts/content-health.mjs` | 월간 링크·신선도 점검 (GitHub Action) |

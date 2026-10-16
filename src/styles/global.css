@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
-@import "@fontsource/jetbrains-mono/500.css";
 
 /*
   디자인 토큰
@@ -14,7 +12,7 @@
   --surface-2: #faf9f6;
   --ink: #0d1424;
   --ink-2: #2a3245;
-  --muted: #646c7d;
+  --muted: #5a6273;
   --line: rgb(13 20 36 / 0.09);
   --line-2: rgb(13 20 36 / 0.16);
 
@@ -23,12 +21,17 @@
   --de: #f2b200;
   --bridge: linear-gradient(90deg, var(--kr) 0%, var(--red) 52%, var(--de) 100%);
 
-  --ok: #0f9d58;
+  --ok: #0b7d45;
   --ok-bg: #e6f6ed;
-  --warn: #b96a00;
+  --warn: #9a5800;
   --warn-bg: #fff3dc;
-  --draft: #6b5bd2;
+  --draft: #5b4bc4;
   --draft-bg: #efecfd;
+  --ok-fill: #0b7d45;
+  --warn-fill: #9a5800;
+  --draft-fill: #5b4bc4;
+  --fill-ink: #ffffff;
+  --red-ink: #c22a30;
   --danger-bg: #fff0ef;
   --danger-line: #f6c8c5;
 
@@ -60,6 +63,11 @@
     --warn-bg: rgb(255 181 71 / 0.12);
     --draft: #a99bff;
     --draft-bg: rgb(169 155 255 / 0.13);
+    --ok-fill: #1f9a5c;
+    --warn-fill: #c27c12;
+    --draft-fill: #7d6ae6;
+    --fill-ink: #080b13;
+    --red-ink: #ff6b70;
     --danger-bg: rgb(255 90 95 / 0.09);
     --danger-line: rgb(255 90 95 / 0.3);
 
@@ -189,8 +197,8 @@ body {
   to { stroke-dashoffset: 0; }
 }
 @keyframes rise {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
+  from { transform: translateY(14px); }
+  to { transform: none; }
 }
 @keyframes travel {
   from { offset-distance: 0%; }

@@ -1,0 +1,202 @@
+---
+import Base from "../layouts/Base.astro";
+import TrustBadge from "../components/TrustBadge.astro";
+import { loadData, CATEGORIES, STATUS, STALE_DAYS, daysSince, href, type Card } from "../lib/data";
+
+const { cards, scenarios } = await loadData();
+const WEB = /^\[웹 조사 (\d{4}-\d{2}-\d{2})\]\s*/;
+
+// 틀리면 피해가 큰(기한·처벌·금액) 카드부터 확인
+const PRIORITY = ["license-exchange", "anmeldung-darmstadt", "military-travel-permit", "nhis-suspension", "remittance"];
+
+type S = Card["verification"]["status"];
+const ORDER: S[] = ["verified", "partial", "draft"];
+const FILL: Record<S, string> = { verified: "var(--ok-fill)", partial: "var(--warn-fill)", draft: "var(--draft-fill)" };
+const ICON: Record<S, string> = { verified: "확인", partial: "일부", draft: "초안" };
+
+const count = (list: Card[]) => Object.fromEntries(ORDER.map((s) => [s, list.filter((c) => c.verification.status === s).length])) as Record<S, number>;
+const all = count(cards);
+
+const openItems = cards.flatMap((c) => c.verification.toVerify);
+const webItems = openItems.filter((t) => WEB.test(t));
+const withOfficial = cards.filter((c) => c.sources.some((s) => s.type === "official"));
+const withExperience = cards.filter((c) => c.experience.length > 0);
+const stale = cards.filter((c) => c.verification.checkedAt && daysSince(c.verification.checkedAt) >= STALE_DAYS);
+const dataDate = cards.map((c) => c.updatedAt).sort().at(-1);
+
+const work = [...cards].sort((a, b) => {
+  const pa = PRIORITY.indexOf(a.id), pb = PRIORITY.indexOf(b.id);
+  if (pa !== pb) return (pa < 0 ? 99 : pa) - (pb < 0 ? 99 : pb);
+  const sa = ORDER.indexOf(a.verification.status), sb = ORDER.indexOf(b.verification.status);
+  if (sa !== sb) return sb - sa; // draft 먼저
+  return b.verification.toVerify.length - a.verification.toVerify.length;
+});
+
+const groups = [
+  ...scenarios.map((s) => ({ label: `${s.icon} ${s.title}`, link: href(`/s/${s.id}/`), list: s.steps.map((st) => cards.find((c) => c.id === st.cardId)!) })),
+];
+const cats = (Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[])
+  .map((k) => ({ label: `${CATEGORIES[k].icon} ${CATEGORIES[k].label}`, link: href(`/k/${k}/`), list: cards.filter((c) => c.category === k) }))
+  .filter((g) => g.list.length);
+const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u; } };
+---
+<Base title="정보 현황판" description="모든 카드의 확인 상태, 공식 출처, 남은 확인 항목을 한눈에">
+  <div class="wrap">
+    <p class="eyebrow">STATUS · 데이터 기준 {dataDate}</p>
+    <h1 class="mt-2 text-[32px] leading-tight font-extrabold tracking-[-0.035em] sm:text-[40px]">정보 현황판</h1>
+    <p class="mt-2 max-w-[640px] text-[15.5px] leading-relaxed text-ink-2">모든 카드가 얼마나 확인됐는지, 무엇이 남았는지 한눈에 봐요. "확인됨"은 사람이 공식 출처와 직접 대조한 카드만 셉니다.</p>
+
+    <!-- 핵심 수치 -->
+    <dl class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {[
+        { k: "확인됨", v: all.verified, of: cards.length, note: "사람이 공식 출처와 대조 완료" },
+        { k: "공식 출처 연결", v: withOfficial.length, of: cards.length, note: `없는 카드: ${cards.filter((c) => !withOfficial.includes(c)).map((c) => c.title).join(", ") || "없음"}` },
+        { k: "남은 확인 항목", v: openItems.length, note: `그중 웹 조사 단서 ${webItems.length}건` },
+        { k: "경험담 연결", v: withExperience.length, of: cards.length, note: stale.length ? `⏳ 180일 경과 ${stale.length}장` : "180일 경과 카드 없음" },
+      ].map((x) => (
+        <div class="panel p-4 sm:p-5">
+          <dt class="eyebrow">{x.k}</dt>
+          <dd class="mt-2 text-[34px] leading-none font-extrabold tracking-tight tabular-nums">
+            {x.v}{x.of !== undefined && <span class="text-[17px] font-semibold text-muted"> / {x.of}</span>}
+          </dd>
+          <dd class="mt-2 text-[12.5px] leading-snug text-muted">{x.note}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <!-- 전체 분포 -->
+    <section class="panel mt-4 p-5 sm:p-6" aria-labelledby="dist">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="dist" class="text-[17px] font-bold">전체 카드 {cards.length}장의 확인 상태</h2>
+        <ul class="flex flex-wrap gap-3 text-[12.5px] text-ink-2" aria-label="범례">
+          {ORDER.map((s) => <li class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-[3px]" style={`background:${FILL[s]}`}></span>{STATUS[s].label}</li>)}
+        </ul>
+      </div>
+      <div class="mt-4 flex h-11 gap-[2px] overflow-hidden rounded-xl" role="img" aria-label={ORDER.map((s) => `${STATUS[s].label} ${all[s]}장`).join(", ")}>
+        {ORDER.filter((s) => all[s] > 0).map((s) => (
+          <div class="flex min-w-[56px] items-center px-3 text-[13px] font-bold first:rounded-l-[4px] last:rounded-r-[4px]" style={`flex:${all[s]};background:${FILL[s]};color:var(--fill-ink)`} title={`${STATUS[s].label}: ${all[s]}장`}>
+            {ICON[s]} {all[s]}
+          </div>
+        ))}
+      </div>
+      {all.verified === 0 && <p class="mt-3 text-[13px] text-muted">아직 "확인됨" 카드가 없어요. 아래 작업 목록의 우선 카드부터 대조하면 바로 반영돼요.</p>}
+    </section>
+
+    <!-- 시나리오·카테고리별 -->
+    <section class="mt-4 grid gap-4 lg:grid-cols-2">
+      {[{ t: "시나리오별 준비도", g: groups }, { t: "카테고리별", g: cats }].map((block) => (
+        <div class="panel p-5 sm:p-6">
+          <h2 class="text-[17px] font-bold">{block.t}</h2>
+          <ul class="mt-4 space-y-4">
+            {block.g.map((g) => {
+              const n = count(g.list);
+              return (
+                <li>
+                  <div class="flex items-baseline justify-between gap-2 text-[14px]">
+                    <a href={g.link} class="truncate font-semibold hover:underline">{g.label}</a>
+                    <span class="flex-none font-mono text-[11.5px] text-muted">{ORDER.map((s) => `${ICON[s]} ${n[s]}`).join(" · ")}</span>
+                  </div>
+                  <div class="mt-1.5 flex h-2.5 gap-[2px] overflow-hidden rounded-full" style="background:var(--bg-2)" role="img" aria-label={ORDER.map((s) => `${STATUS[s].label} ${n[s]}`).join(", ")}>
+                    {ORDER.filter((s) => n[s]).map((s) => <span style={`flex:${n[s]};background:${FILL[s]}`} title={`${STATUS[s].label} ${n[s]}장`}></span>)}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </section>
+
+    <!-- 확인 작업 목록 -->
+    <section class="mt-14" aria-labelledby="work">
+      <p class="eyebrow">확인 작업 목록</p>
+      <h2 id="work" class="mt-2 text-[24px] font-extrabold tracking-[-0.03em]">어떤 카드부터 확인할까요?</h2>
+      <p class="mt-2 max-w-[680px] text-[14.5px] leading-relaxed text-muted">
+        기한·처벌·금액이 걸려 틀리면 피해가 큰 카드가 위에 있어요. 항목을 펼치면 확인할 내용과 대조할 공식 링크가 함께 나와요.
+        <span class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 align-middle font-mono text-[10.5px] font-bold" style="background:var(--draft-bg);color:var(--draft)">웹 조사</span>
+        표시는 조사로 찾은 단서라 원문과 대조만 하면 돼요.
+      </p>
+
+      <div class="mt-5 flex flex-wrap gap-2" role="group" aria-label="상태 필터">
+        {[["all", "전체"], ["draft", "초안"], ["partial", "일부 확인"], ["verified", "확인됨"]].map(([k, l], i) => (
+          <button type="button" class="chip min-h-[40px] !px-4" style={i === 0 ? "border-color:var(--ink)" : ""} data-filter={k} aria-pressed={i === 0 ? "true" : "false"}>{l}</button>
+        ))}
+      </div>
+
+      <ol class="mt-4 space-y-2.5">
+        {work.map((c, i) => {
+          const items = c.verification.toVerify.map((t) => ({ web: WEB.exec(t)?.[1], text: t.replace(WEB, "") }));
+          const off = c.sources.filter((s) => s.type === "official");
+          const pri = PRIORITY.includes(c.id);
+          return (
+            <li data-status={c.verification.status}>
+              <details class="panel group overflow-hidden">
+                <summary class="flex cursor-pointer list-none items-center gap-3 p-4 sm:px-5">
+                  <span class="w-6 flex-none font-mono text-[12px] text-muted">{String(i + 1).padStart(2, "0")}</span>
+                  <span class="min-w-0 flex-1">
+                    <span class="flex flex-wrap items-center gap-1.5">
+                      {pri && <span class="rounded-md px-1.5 py-0.5 text-[11px] font-bold" style="background:var(--red-ink);color:var(--fill-ink)">우선</span>}
+                      <span class="text-[15.5px] leading-snug font-bold">{c.title}</span>
+                    </span>
+                    <span class="mt-1.5 flex flex-wrap items-center gap-2">
+                      <TrustBadge v={c.verification} compact />
+                      <span class="font-mono text-[11.5px] text-muted">확인 항목 {items.length} · 공식 출처 {off.length}</span>
+                    </span>
+                  </span>
+                  <span class="text-muted transition group-open:rotate-180" aria-hidden="true">⌄</span>
+                </summary>
+                <div class="border-t border-line p-4 sm:px-5">
+                  {items.length ? (
+                    <ul class="space-y-2">
+                      {items.map((t) => (
+                        <li class="flex gap-2.5 text-[14px] leading-relaxed">
+                          <span class="mt-[3px] grid h-[18px] w-[18px] flex-none place-items-center rounded-[5px] border border-line-2" aria-hidden="true"></span>
+                          <span>
+                            {t.web && <span class="mr-1.5 rounded-md px-1.5 py-0.5 align-[1px] font-mono text-[10.5px] font-bold" style="background:var(--draft-bg);color:var(--draft)">웹 조사</span>}
+                            {t.text}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p class="text-[14px] text-muted">남은 확인 항목이 없어요.</p>}
+
+                  <p class="eyebrow mt-5">대조할 공식 출처</p>
+                  {off.length ? (
+                    <ul class="mt-2 grid gap-1.5">
+                      {off.map((s) => (
+                        <li><a href={s.url} target="_blank" rel="noopener" class="flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-line px-3 py-2 text-[13.5px] hover:border-line-2 hover:bg-[var(--surface-2)]">
+                          <span class="min-w-0"><span class="block leading-snug font-semibold">{s.title}</span><span class="block truncate font-mono text-[11px] text-muted">{host(s.url)}</span></span>
+                          <span aria-hidden="true">↗</span>
+                        </a></li>
+                      ))}
+                    </ul>
+                  ) : <p class="mt-2 text-[13.5px] font-semibold" style="color:var(--warn)">⚠ 공식 출처가 아직 없어요. 먼저 정부·공공기관 안내를 찾아야 해요.</p>}
+
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    <a href={href(`/c/${c.id}/`)} class="btn btn-ink !min-h-[40px] !text-[14px]">카드 보기</a>
+                    <a href={href(`/report/?card=${c.id}`)} class="btn btn-ghost !min-h-[40px] !text-[14px]">확인 결과 보내기</a>
+                  </div>
+                </div>
+              </details>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  </div>
+</Base>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>("[data-filter]");
+  const rows = document.querySelectorAll<HTMLElement>("li[data-status]");
+  for (const b of buttons) {
+    b.addEventListener("click", () => {
+      for (const x of buttons) {
+        const on = x === b;
+        x.setAttribute("aria-pressed", String(on));
+        x.style.borderColor = on ? "var(--ink)" : "";
+      }
+      for (const r of rows) r.hidden = b.dataset.filter !== "all" && r.dataset.status !== b.dataset.filter;
+    });
+  }
+</script>

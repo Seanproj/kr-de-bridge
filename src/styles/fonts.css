@@ -1,0 +1,3 @@
+/* 폰트 정의만 따로 — HTML에 인라인되어 추가 요청 없이 첫 렌더부터 정의된다 (font-display: optional → 레이아웃 밀림 없음) */
+@import "./pretendard.css";
+@import "@fontsource/jetbrains-mono/500.css";

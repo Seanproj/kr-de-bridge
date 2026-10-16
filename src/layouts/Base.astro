@@ -1,8 +1,10 @@
 ---
 import "../styles/global.css";
+import "../styles/fonts.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { href } from "../lib/data";
+import { pwaInfo } from "virtual:pwa-info";
 
 interface Props { title?: string; description?: string; bare?: boolean; ogImage?: string }
 const { title, description = "독일에 사는 한국인을 위한 행정 정보 카드 — 필요 서류, 어디서, 얼마나 걸리는지, 자주 하는 실수까지.", bare = false, ogImage = "/og.png" } = Astro.props;
@@ -28,11 +30,17 @@ const og = Astro.site ? new URL(href(ogImage), Astro.site).href : href(ogImage);
     <meta property="og:description" content={description} />
     <meta property="og:image" content={og} />
     <meta name="twitter:card" content="summary_large_image" />
+    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
     <slot name="head" />
   </head>
   <body class="min-h-dvh">
     <Header />
     <main class:list={[!bare && "pt-6"]}><slot /></main>
     <Footer />
+    <script>
+      // 서비스워커 등록 → 열어본 페이지를 오프라인에서도 열람
+      import { registerSW } from "virtual:pwa-register";
+      registerSW({ immediate: true });
+    </script>
   </body>
 </html>

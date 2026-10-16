@@ -49,7 +49,7 @@ const items = s.steps.map((st) => ({ ...st, card: cards.find((c) => c.id === st.
             <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-1.5"><DirectionTag d={it.card.direction} size="sm" /><TrustBadge v={it.card.verification} compact /></div>
               <h2 class="mt-2 text-[17px] leading-snug font-bold tracking-tight">{it.card.title}</h2>
-              <p class="mt-2 flex gap-2 text-[14px] leading-relaxed text-ink-2"><span class="flex-none font-bold" style="color:var(--red)">왜 지금?</span><span>{it.why}</span></p>
+              <p class="mt-2 flex gap-2 text-[14px] leading-relaxed text-ink-2"><span class="flex-none font-bold" style="color:var(--red-ink)">왜 지금?</span><span>{it.why}</span></p>
               <a href={href(`/c/${it.cardId}/`)} class="mt-3 inline-flex min-h-[44px] items-center gap-1 text-[14px] font-bold underline-offset-4 hover:underline">
                 카드 보기 · {it.card.steps.length}단계, 실수 {it.card.mistakes.length}개 <span aria-hidden="true">→</span>
               </a>
