@@ -31,4 +31,4 @@ npm run check:data   # data/*.json 스키마·참조 검사
 ## 배포
 
 Cloudflare Pages: 빌드 명령 `npm run build`, 출력 `dist`, 환경변수 `SITE_URL`.
-GitHub Pages(하위 경로): `BASE_PATH=/kr-de-bridge SITE_URL=https://<user>.github.io npm run build`.
+GitHub Pages: `main`에 push하면 `.github/workflows/deploy.yml`이 자동 배포한다 (Settings → Pages → Source: GitHub Actions).
