@@ -1,0 +1,30 @@
+[
+  {
+    "id": "berlin",
+    "name": "주독일 대한민국 대사관 (베를린)",
+    "city": "Berlin",
+    "url": "https://overseas.mofa.go.kr/de-ko/index.do",
+    "states": ["Berlin", "Brandenburg", "Mecklenburg-Vorpommern", "Sachsen", "Sachsen-Anhalt", "Thüringen"]
+  },
+  {
+    "id": "bonn",
+    "name": "주독일 대한민국 대사관 본분관 (본)",
+    "city": "Bonn",
+    "url": "https://overseas.mofa.go.kr/de-bonn-ko/index.do",
+    "states": ["Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland"]
+  },
+  {
+    "id": "frankfurt",
+    "name": "주프랑크푸르트 대한민국 총영사관",
+    "city": "Frankfurt am Main",
+    "url": "https://overseas.mofa.go.kr/de-frankfurt-ko/index.do",
+    "states": ["Hessen", "Baden-Württemberg", "Bayern"]
+  },
+  {
+    "id": "hamburg",
+    "name": "주함부르크 대한민국 총영사관",
+    "city": "Hamburg",
+    "url": "https://overseas.mofa.go.kr/de-hamburg-ko/index.do",
+    "states": ["Hamburg", "Bremen", "Niedersachsen", "Schleswig-Holstein"]
+  }
+]

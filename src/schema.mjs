@@ -20,7 +20,12 @@ export const CardSchema = z
     audience: z.string(),
     steps: z.array(z.object({ title: z.string(), detail: z.string() })).min(1),
     documents: z.array(z.string()),
-    where: z.array(z.object({ name: z.string(), url: z.string().url().optional(), note: z.string().optional() })),
+    where: z.array(z.object({
+      name: z.string(),
+      url: z.string().url().optional(),
+      note: z.string().optional(),
+      finder: z.literal("consulate").optional(), // 카드에 '내 주 → 관할 공관' 찾기 표시
+    }).strict()),
     duration: z.string(),
     cost: z.string(),
     mistakes: z.array(z.string()),
@@ -54,6 +59,32 @@ export const ScenarioSchema = z
     steps: z.array(z.object({ cardId: z.string(), why: z.string() })).min(1),
   })
   .strict();
+
+export const STATES = [
+  "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern",
+  "Niedersachsen", "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen", "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen",
+];
+
+export const ConsulateSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    city: z.string(),
+    url: z.string().url(),
+    states: z.array(z.enum(STATES)).min(1),
+  })
+  .strict();
+
+/** 16개 주가 공관 하나에 정확히 한 번씩 배정됐는지 */
+export function checkConsulates(list) {
+  const seen = list.flatMap((c) => c.states);
+  const errors = [];
+  for (const st of STATES) {
+    const n = seen.filter((x) => x === st).length;
+    if (n !== 1) errors.push(`공관 관할: ${st}가 ${n}번 배정됨`);
+  }
+  return errors;
+}
 
 /** 카드 간 참조(related, scenario.steps)가 실제 존재하는지 확인 */
 export function crossCheck(cards, scenarios) {

@@ -4,6 +4,7 @@ import Hero from "../components/Hero.astro";
 import CardTile from "../components/CardTile.astro";
 import TrustBadge from "../components/TrustBadge.astro";
 import DirectionTag from "../components/DirectionTag.astro";
+import ConsulateFinder from "../components/ConsulateFinder.astro";
 import { loadData, CATEGORIES, href } from "../lib/data";
 
 const { cards, scenarios } = await loadData();
@@ -93,9 +94,21 @@ const accents = [
     </div>
   </section>
 
+  <!-- 관할 공관 -->
+  <section class="wrap mt-14" aria-labelledby="mission-title">
+    <div class="panel grid gap-5 p-5 sm:grid-cols-[1fr_1.2fr] sm:items-center sm:p-7">
+      <div>
+        <p class="eyebrow">03 · 독일 어디에 살든</p>
+        <h2 id="mission-title" class="mt-2 text-[24px] leading-snug font-extrabold tracking-[-0.03em]">내 관할 한국 공관은 어디일까?</h2>
+        <p class="mt-2 text-[14.5px] leading-relaxed text-muted">위임장 공증, 인감 위임장, 재외국민등록은 사는 주를 맡은 공관에서 해요. 한 번 고르면 다른 카드에서도 기억해요.</p>
+      </div>
+      <ConsulateFinder compact />
+    </div>
+  </section>
+
   <!-- 최근 확인 -->
   <section class="wrap mt-14 [content-visibility:auto] [contain-intrinsic-size:auto_640px]" aria-labelledby="recent-title">
-    <p class="eyebrow">03 · 최근 확인된 정보</p>
+    <p class="eyebrow">04 · 최근 확인된 정보</p>
     <h2 id="recent-title" class="mt-2 text-[24px] font-extrabold tracking-[-0.03em]">공식 출처와 대조한 순서</h2>
     <ul class="panel mt-5 divide-y divide-[var(--line)] overflow-hidden">
       {recent.map((c) => (
@@ -121,7 +134,7 @@ const accents = [
 
   <!-- 전체 -->
   <section class="wrap mt-16 [content-visibility:auto] [contain-intrinsic-size:auto_2400px]" aria-labelledby="all-title">
-    <p class="eyebrow">04 · 전체 카드</p>
+    <p class="eyebrow">05 · 전체 카드</p>
     <h2 id="all-title" class="mt-2 text-[24px] font-extrabold tracking-[-0.03em]">모든 정보 카드 {cards.length}개</h2>
     {cats.map((cat) => (
       <div class="mt-8">

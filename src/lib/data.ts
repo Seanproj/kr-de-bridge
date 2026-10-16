@@ -1,5 +1,6 @@
 import { getCollection } from "astro:content";
-import { crossCheck } from "../schema.mjs";
+import { crossCheck, checkConsulates, ConsulateSchema } from "../schema.mjs";
+import consulates from "../../data/consulates.json";
 import type { z } from "zod";
 import type { CardSchema, ScenarioSchema } from "../schema.mjs";
 
@@ -12,7 +13,8 @@ export async function loadData() {
   if (cache) return cache;
   const cards = (await getCollection("cards")).map((e) => e.data as Card);
   const scenarios = (await getCollection("scenarios")).map((e) => e.data as Scenario);
-  const errors = crossCheck(cards, scenarios);
+  const errors = [...crossCheck(cards, scenarios), ...checkConsulates(consulates)];
+  for (const c of consulates) ConsulateSchema.parse(c);
   if (errors.length) throw new Error("데이터 참조 오류:\n" + errors.join("\n"));
   cache = { cards, scenarios };
   return cache;

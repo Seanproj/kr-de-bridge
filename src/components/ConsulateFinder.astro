@@ -1,0 +1,56 @@
+---
+// 사는 주(州) → 관할 재외공관. 선택은 이 기기에만 저장되어 다른 카드에서도 그대로 보인다.
+import consulates from "../../data/consulates.json";
+
+const KO: Record<string, string> = {
+  "Baden-Württemberg": "바덴뷔르템베르크", Bayern: "바이에른", Berlin: "베를린", Brandenburg: "브란덴부르크",
+  Bremen: "브레멘", Hamburg: "함부르크", Hessen: "헤센", "Mecklenburg-Vorpommern": "메클렌부르크포어포메른",
+  Niedersachsen: "니더작센", "Nordrhein-Westfalen": "노르트라인베스트팔렌", "Rheinland-Pfalz": "라인란트팔츠",
+  Saarland: "자를란트", Sachsen: "작센", "Sachsen-Anhalt": "작센안할트", "Schleswig-Holstein": "슐레스비히홀슈타인", Thüringen: "튀링겐",
+};
+const states = consulates.flatMap((c) => c.states.map((s) => ({ s, ko: KO[s], c: c.id }))).sort((a, b) => a.ko.localeCompare(b.ko, "ko"));
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+const uid = "cf" + Math.random().toString(36).slice(2, 7);
+---
+<div class:list={["consulate-finder rounded-2xl p-4", compact ? "" : "sm:p-5"]} style="background:var(--bg-2)" data-finder>
+  <label for={uid} class="text-[14px] font-bold">🗺️ 내가 사는 주는?</label>
+  <select id={uid} class="mt-2 min-h-[44px] w-full rounded-xl border border-line-2 px-3 text-[15px]" style="background:var(--surface);color:var(--ink)" data-state>
+    <option value="">주(Bundesland)를 고르세요</option>
+    {states.map((x) => <option value={x.s} data-c={x.c}>{x.ko} · {x.s}</option>)}
+  </select>
+  <div class="mt-3" aria-live="polite">
+    {consulates.map((c) => (
+      <a href={c.url} target="_blank" rel="noopener" hidden data-result={c.id} class="flex min-h-[52px] items-center justify-between gap-3 rounded-xl p-3" style="background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-2)">
+        <span class="min-w-0">
+          <span class="block text-[15px] font-bold">{c.name}</span>
+          <span class="mt-0.5 block text-[12.5px] text-muted">관할: {c.states.map((s) => KO[s]).join(" · ")}</span>
+        </span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    ))}
+    <p class="text-[12.5px] text-muted" data-empty>독일 16개 주를 공관 4곳(베를린 대사관, 본 분관, 프랑크푸르트·함부르크 총영사관)이 나눠 맡아요.</p>
+  </div>
+</div>
+<script>
+  const KEY = "kdb:state";
+  let saved = "";
+  try { saved = localStorage.getItem(KEY) ?? ""; } catch {}
+  const finders = [...document.querySelectorAll<HTMLElement>("[data-finder]")];
+  function show(state: string) {
+    for (const f of finders) {
+      const sel = f.querySelector<HTMLSelectElement>("[data-state]")!;
+      sel.value = state;
+      const id = sel.selectedOptions[0]?.dataset.c ?? "";
+      for (const r of f.querySelectorAll<HTMLElement>("[data-result]")) r.hidden = r.dataset.result !== id;
+      f.querySelector<HTMLElement>("[data-empty]")!.hidden = !!id;
+    }
+  }
+  for (const f of finders)
+    f.querySelector("[data-state]")!.addEventListener("change", (e) => {
+      const v = (e.target as HTMLSelectElement).value;
+      try { localStorage.setItem(KEY, v); } catch {}
+      show(v);
+    });
+  if (saved) show(saved);
+</script>

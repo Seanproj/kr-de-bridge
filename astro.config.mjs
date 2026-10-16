@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import AstroPWA from "@vite-pwa/astro";
 
 // 배포 주소: SITE_URL (예: https://kr-de-bridge.pages.dev), GitHub Pages 하위 경로면 BASE_PATH=/kr-de-bridge
-const site = process.env.SITE_URL ?? "https://kr-de-bridge.pages.dev";
+const site = process.env.SITE_URL ?? "https://seanproj.github.io";
 const base = process.env.BASE_PATH ?? "/";
 
 export default defineConfig({
@@ -12,6 +12,8 @@ export default defineConfig({
   site,
   base,
   trailingSlash: "always",
+  // 독일 전역 기준으로 바뀌며 이름이 바뀐 카드 — 예전 링크 유지
+  redirects: { "/c/anmeldung-darmstadt/": `${base.replace(/\/$/, "")}/c/anmeldung/` },
   vite: { plugins: [tailwindcss()] },
   integrations: [
     AstroPWA({

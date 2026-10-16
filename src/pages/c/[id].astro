@@ -4,6 +4,7 @@ import TrustBadge from "../../components/TrustBadge.astro";
 import DirectionTag from "../../components/DirectionTag.astro";
 import CardTile from "../../components/CardTile.astro";
 import Disclaimer from "../../components/Disclaimer.astro";
+import ConsulateFinder from "../../components/ConsulateFinder.astro";
 import { loadData, CATEGORIES, METHODS, href, reportUrl, type Card } from "../../lib/data";
 
 export async function getStaticPaths() {
@@ -115,6 +116,7 @@ const v = card.verification;
           </div>
         ))}
       </div>
+      {card.where.some((w) => w.finder === "consulate") && <div class="mt-3" data-pagefind-ignore><ConsulateFinder /></div>}
     </section>
 
     <!-- 7. 소요 기간 / 비용 -->

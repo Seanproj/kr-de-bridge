@@ -7,7 +7,7 @@ const { cards, scenarios } = await loadData();
 const WEB = /^\[웹 조사 (\d{4}-\d{2}-\d{2})\]\s*/;
 
 // 틀리면 피해가 큰(기한·처벌·금액) 카드부터 확인
-const PRIORITY = ["license-exchange", "anmeldung-darmstadt", "military-travel-permit", "nhis-suspension", "remittance"];
+const PRIORITY = ["license-exchange", "anmeldung", "military-travel-permit", "nhis-suspension", "remittance"];
 
 type S = Card["verification"]["status"];
 const ORDER: S[] = ["verified", "partial", "draft"];

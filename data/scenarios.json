@@ -5,7 +5,7 @@
     "icon": "🛬",
     "description": "도착 후 첫 3개월 안에 처리하면 좋은 일들을 순서대로 모았어요.",
     "steps": [
-      { "cardId": "anmeldung-darmstadt", "why": "거주지 등록 확인서가 거의 모든 다음 절차에 필요해요." },
+      { "cardId": "anmeldung", "why": "거주지 등록 확인서가 거의 모든 다음 절차에 필요해요." },
       { "cardId": "overseas-registration", "why": "한국 영사 서비스를 받기 위한 기본 등록이에요." },
       { "cardId": "nhis-suspension", "why": "3개월 이상 체류라면 한국 건강보험료가 계속 나가지 않게 정리해요." },
       { "cardId": "nps-germany-agreement", "why": "독일에서 일한다면 어느 나라 연금에 가입하는지 처음에 정해져요." },
