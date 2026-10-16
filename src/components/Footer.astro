@@ -1,0 +1,23 @@
+---
+import Logo from "./Logo.astro";
+import { href, reportUrl } from "../lib/data";
+---
+<footer class="mt-24 border-t border-line">
+  <div class="h-[3px] bridge-bar opacity-80"></div>
+  <div class="wrap grid gap-8 py-12 sm:grid-cols-[1.4fr_1fr]">
+    <div>
+      <div class="flex items-center gap-2.5 font-bold"><Logo size={24} /> 한독 행정 브릿지</div>
+      <p class="mt-3 max-w-md text-[14px] leading-relaxed text-muted">
+        독일에 사는 한국인을 위한 행정 정보 카드. 모든 카드에 공식 출처와 확인 상태를 붙이고, 확인되지 않은 내용은 숨기지 않고 표시합니다.
+      </p>
+    </div>
+    <div class="flex flex-wrap content-start gap-2 text-[14px] font-semibold">
+      <a class="btn btn-ghost" href={href("/about/")}>소개·면책</a>
+      <a class="btn btn-ghost" href={reportUrl()} target="_blank" rel="noopener">정보 제보</a>
+      <a class="btn btn-ghost" href={href("/search/")}>검색</a>
+    </div>
+  </div>
+  <div class="wrap pb-10 font-mono text-[11px] text-muted">
+    법률·세무 자문이 아닙니다 · 진행 전 각 기관의 공식 안내를 확인하세요
+  </div>
+</footer>

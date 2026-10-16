@@ -1,0 +1,232 @@
+---
+import Base from "../../layouts/Base.astro";
+import TrustBadge from "../../components/TrustBadge.astro";
+import DirectionTag from "../../components/DirectionTag.astro";
+import CardTile from "../../components/CardTile.astro";
+import Disclaimer from "../../components/Disclaimer.astro";
+import { loadData, CATEGORIES, METHODS, href, reportUrl, type Card } from "../../lib/data";
+
+export async function getStaticPaths() {
+  const { cards } = await loadData();
+  return cards.map((card) => ({ params: { id: card.id }, props: { card } }));
+}
+
+const { card } = Astro.props as { card: Card };
+const { cards, scenarios } = await loadData();
+const related = card.related.map((id) => cards.find((c) => c.id === id)!).filter(Boolean);
+const inScenarios = scenarios.filter((s) => s.steps.some((st) => st.cardId === card.id));
+const experience = card.experience.map((e) => ({ ...e, summary: e.summary.startsWith("TODO") ? "" : e.summary }));
+const official = card.sources.filter((s) => s.type === "official");
+const secondary = card.sources.filter((s) => s.type === "secondary");
+const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u; } };
+const v = card.verification;
+---
+<Base title={card.title} description={card.summary} ogImage={`/og/${card.id}.png`}>
+  <article class="narrow pb-28" data-pagefind-body>
+    <!-- 경로 -->
+    <nav class="flex flex-wrap items-center gap-1.5 text-[13px] text-muted" aria-label="위치" data-pagefind-ignore>
+      <a href={href("/")} class="hover:text-ink">홈</a><span>/</span>
+      <a href={href(`/k/${card.category}/`)} class="hover:text-ink">{CATEGORIES[card.category].label}</a>
+    </nav>
+
+    <!-- 1. 제목 + 방향·방식 태그 -->
+    <header class="mt-4">
+      <div class="flex flex-wrap gap-1.5">
+        <DirectionTag d={card.direction} />
+        {card.methods.map((m) => <span class="chip"><span aria-hidden="true">{METHODS[m].icon}</span>{METHODS[m].label}</span>)}
+      </div>
+      <h1 class="mt-4 text-[30px] leading-[1.15] font-extrabold tracking-[-0.035em] sm:text-[40px]" data-pagefind-meta="title">{card.title}</h1>
+
+      <!-- 2. 신뢰도 배지 -->
+      <div class="mt-4" data-pagefind-ignore>
+        <TrustBadge v={v} />
+        {v.toVerify.length > 0 && (
+          <details class="group mt-3 rounded-2xl border border-line p-3.5 text-[13.5px] open:bg-[var(--surface)]">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-2 font-semibold text-ink-2">
+              <span>🔍 아직 확인 중인 내용 {v.toVerify.length}건</span>
+              <span class="text-muted transition group-open:rotate-180">⌄</span>
+            </summary>
+            <ul class="mt-3 space-y-2 text-muted">
+              {v.toVerify.map((t) => <li class="flex gap-2"><span class="mt-[7px] h-1.5 w-1.5 flex-none rounded-full" style="background:var(--draft)"></span><span>{t}</span></li>)}
+            </ul>
+            <p class="mt-3 text-[12.5px] text-muted">이 항목들은 공식 출처와 아직 대조하지 않았어요. 진행 전 기관에 꼭 확인하세요.</p>
+          </details>
+        )}
+      </div>
+    </header>
+
+    <!-- 3. 요약 + 대상 -->
+    <section class="mt-7">
+      <p class="text-[18px] leading-relaxed font-medium text-ink-2">{card.summary}</p>
+      <div class="mt-4 flex gap-3 rounded-2xl p-4" style="background:var(--bg-2)">
+        <span class="text-[20px]" aria-hidden="true">🙋</span>
+        <div><p class="eyebrow">이런 분께 해당</p><p class="mt-1 text-[15px] leading-relaxed">{card.audience}</p></div>
+      </div>
+    </section>
+
+    <!-- 4. 진행 순서 -->
+    <section class="mt-12" aria-labelledby="steps">
+      <h2 id="steps" class="section-title">진행 순서 <span class="font-mono text-[12px] font-medium text-muted">{card.steps.length}단계</span></h2>
+      <ol class="relative mt-5">
+        {card.steps.map((s, i) => (
+          <li class="relative flex gap-4 pb-6 last:pb-0">
+            {i < card.steps.length - 1 && <span class="absolute top-11 bottom-1 left-[19px] w-[2px] rounded" style="background:linear-gradient(var(--line-2),var(--line))"></span>}
+            <span class="relative grid h-10 w-10 flex-none place-items-center rounded-full font-mono text-[14px] font-bold" style={i === 0 ? "background:var(--ink);color:var(--bg)" : "background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line-2)"}>{i + 1}</span>
+            <div class="pt-1.5">
+              <h3 class="text-[16.5px] font-bold tracking-tight">{s.title}</h3>
+              <p class="mt-1.5 text-[15px] leading-relaxed text-ink-2">{s.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- 5. 준비물 -->
+    {card.documents.length > 0 && (
+      <section class="mt-12" aria-labelledby="docs">
+        <div class="flex items-center justify-between">
+          <h2 id="docs" class="section-title">준비물</h2>
+          <span class="font-mono text-[12px] text-muted" data-doc-count></span>
+        </div>
+        <div class="panel mt-4 divide-y divide-[var(--line)] overflow-hidden" data-check-group={`doc:${card.id}`}>
+          {card.documents.map((d) => (
+            <label class="flex min-h-[52px] cursor-pointer items-center gap-3.5 px-4 py-3 transition hover:bg-[var(--surface-2)]">
+              <input type="checkbox" class="check" data-check={d} />
+              <span class="check-text text-[15px] leading-snug">{d}</span>
+            </label>
+          ))}
+        </div>
+        <p class="mt-2 text-[12.5px] text-muted">체크 상태는 이 기기의 브라우저에만 저장돼요.</p>
+      </section>
+    )}
+
+    <!-- 6. 어디서 -->
+    <section class="mt-12" aria-labelledby="where">
+      <h2 id="where" class="section-title">어디서</h2>
+      <div class="mt-4 grid gap-3">
+        {card.where.map((w) => (
+          <div class="panel flex flex-wrap items-center justify-between gap-3 p-4">
+            <div class="min-w-0">
+              <p class="text-[15.5px] font-bold">{w.name}</p>
+              {w.note && <p class="mt-0.5 text-[13.5px] text-muted">{w.note}</p>}
+              {w.url && <p class="mt-0.5 font-mono text-[11.5px] text-muted">{host(w.url)}</p>}
+            </div>
+            {w.url && <a href={w.url} target="_blank" rel="noopener" class="btn btn-ink !min-h-[40px] !px-4 !text-[14px]">바로가기 ↗</a>}
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 7. 소요 기간 / 비용 -->
+    <section class="mt-6 grid grid-cols-2 gap-3" aria-label="소요 기간과 비용">
+      {[{ k: "소요 기간", i: "⏱", v: card.duration }, { k: "비용", i: "💶", v: card.cost }].map((x) => (
+        <div class="rounded-2xl p-4" style="background:var(--bg-2)">
+          <p class="eyebrow">{x.i} {x.k}</p>
+          <p class="mt-2 text-[15px] leading-snug font-bold">{x.v}</p>
+        </div>
+      ))}
+    </section>
+
+    <!-- 8. 자주 하는 실수 -->
+    {card.mistakes.length > 0 && (
+      <section class="relative mt-12 overflow-hidden rounded-[24px] p-5 sm:p-6" style="background:var(--danger-bg);box-shadow:inset 0 0 0 1px var(--danger-line)" aria-labelledby="mistakes">
+        <div class="pointer-events-none absolute -top-16 -right-10 text-[160px] leading-none opacity-[0.07] select-none" aria-hidden="true">!</div>
+        <p class="eyebrow !text-[var(--red)]">이 앱의 핵심</p>
+        <h2 id="mistakes" class="mt-1.5 flex items-center gap-2 text-[21px] font-extrabold tracking-tight">⚠️ 자주 하는 실수</h2>
+        <ol class="mt-4 space-y-3">
+          {card.mistakes.map((m, i) => (
+            <li class="flex gap-3 rounded-2xl p-3.5" style="background:color-mix(in oklab, var(--surface) 75%, transparent)">
+              <span class="grid h-6 w-6 flex-none place-items-center rounded-full font-mono text-[11px] font-bold text-white" style="background:var(--red)">{i + 1}</span>
+              <span class="text-[15px] leading-relaxed">{m}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
+
+    <!-- 9. 경험담 -->
+    <section class="mt-12" aria-labelledby="exp" data-pagefind-ignore>
+      <h2 id="exp" class="section-title">경험담</h2>
+      {experience.length ? (
+        <div class="mt-4 grid gap-3">
+          {experience.map((e) => (
+            <a href={e.url} target="_blank" rel="noopener" class="panel lift flex gap-4 p-4">
+              <span class="grid h-11 w-11 flex-none place-items-center rounded-xl text-[20px]" style="background:var(--bg-2)">✍️</span>
+              <span class="min-w-0">
+                <span class="block text-[15px] leading-snug font-bold">{e.title}</span>
+                <span class="mt-1 block text-[13px] text-muted">{e.author} · {host(e.url)} ↗</span>
+                {e.summary && <span class="mt-1.5 block text-[14px] text-ink-2">{e.summary}</span>}
+              </span>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="mt-4 rounded-2xl border border-dashed border-line-2 p-5 text-center text-[14px] text-muted">
+          아직 연결된 경험담이 없어요. 직접 해보셨다면 <a class="font-semibold text-ink underline underline-offset-4" href={reportUrl(card.id)} target="_blank" rel="noopener">후기 링크를 알려주세요</a>.
+        </div>
+      )}
+    </section>
+
+    <!-- 10. 공식 출처 -->
+    <section class="mt-12" aria-labelledby="src" data-pagefind-ignore>
+      <h2 id="src" class="section-title">출처</h2>
+      {card.sources.length === 0 && (
+        <p class="mt-4 rounded-2xl p-4 text-[14px] font-semibold" style="background:var(--warn-bg);color:var(--warn)">⚠ 아직 공식 출처가 연결되지 않은 카드예요. 참고용으로만 보세요.</p>
+      )}
+      {official.length === 0 && card.sources.length > 0 && (
+        <p class="mt-4 rounded-2xl p-4 text-[14px] font-semibold" style="background:var(--warn-bg);color:var(--warn)">⚠ 공식(정부·공공기관) 출처가 아직 없어요. 아래는 보도·2차 자료예요.</p>
+      )}
+      <ul class="mt-4 space-y-2">
+        {[...official, ...secondary].map((s) => (
+          <li>
+            <a href={s.url} target="_blank" rel="noopener" class="flex items-start gap-3 rounded-2xl border border-line p-3.5 transition hover:border-line-2 hover:bg-[var(--surface)]">
+              <span class="mt-0.5 flex-none rounded-md px-1.5 py-0.5 font-mono text-[10.5px] font-bold" style={s.type === "official" ? "background:var(--ok-bg);color:var(--ok)" : "background:var(--bg-2);color:var(--muted)"}>
+                {s.type === "official" ? "공식" : "2차"}
+              </span>
+              <span class="min-w-0">
+                <span class="block text-[14.5px] leading-snug font-semibold">{s.title}</span>
+                <span class="mt-0.5 block truncate font-mono text-[11.5px] text-muted">{host(s.url)} ↗</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="mt-3 font-mono text-[11.5px] text-muted">카드 업데이트 {card.updatedAt}{v.checkedAt ? ` · 출처 대조 ${v.checkedAt}` : " · 출처 대조 전"}</p>
+    </section>
+
+    <!-- 11. 관련 카드 -->
+    {(related.length > 0 || inScenarios.length > 0) && (
+      <section class="mt-12" aria-labelledby="rel" data-pagefind-ignore>
+        <h2 id="rel" class="section-title">함께 보면 좋은 카드</h2>
+        {inScenarios.length > 0 && (
+          <div class="mt-4 flex flex-wrap gap-2">
+            {inScenarios.map((s) => <a href={href(`/s/${s.id}/`)} class="chip min-h-[40px] hover:border-[var(--ink)]">{s.icon} {s.title} 시나리오에 포함</a>)}
+          </div>
+        )}
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">{related.map((c) => <CardTile card={c} />)}</div>
+      </section>
+    )}
+
+    <div class="mt-12" data-pagefind-ignore><Disclaimer /></div>
+  </article>
+
+  <!-- 12. 하단 고정 버튼 -->
+  <div class="fixed inset-x-0 bottom-0 z-30 border-t border-line backdrop-blur-xl" style="background:color-mix(in oklab, var(--bg) 85%, transparent);padding-bottom:env(safe-area-inset-bottom)">
+    <div class="narrow flex gap-2 py-3">
+      <button type="button" class="btn btn-ink flex-1" data-share data-title={card.title} data-text={card.summary}>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" /></svg>
+        <span data-share-label>공유하기</span>
+      </button>
+      <a class="btn btn-ghost flex-1" href={href(`/report/?card=${card.id}`)}>정보가 바뀌었어요</a>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { bindChecklist } from "../../lib/store";
+  import { bindShare } from "../../lib/share";
+  const group = document.querySelector<HTMLElement>("[data-check-group]");
+  const count = document.querySelector("[data-doc-count]");
+  if (group) bindChecklist(group, (d, t) => count && (count.textContent = `${d} / ${t} 준비됨`));
+  bindShare();
+</script>

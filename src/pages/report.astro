@@ -1,0 +1,54 @@
+---
+import Base from "../layouts/Base.astro";
+import { REPO } from "../lib/data";
+---
+<Base title="정보 제보" description="카드 내용이 바뀌었거나 틀렸다면 알려주세요.">
+  <div class="narrow">
+    <p class="eyebrow">REPORT</p>
+    <h1 class="mt-2 text-[32px] font-extrabold tracking-[-0.035em]">정보가 바뀌었나요?</h1>
+    <p class="mt-3 text-[15.5px] leading-relaxed text-ink-2">제도·수수료·기한이 바뀌었거나 틀린 내용을 발견했다면 알려주세요. <b>근거 링크</b>가 있으면 훨씬 빨리 반영할 수 있어요. 개인 서류나 개인정보는 보내지 마세요.</p>
+
+    <form class="panel mt-6 space-y-5 p-5 sm:p-6" data-report>
+      <div>
+        <label class="text-[14px] font-bold" for="r-card">카드</label>
+        <input id="r-card" name="card" readonly class="mt-1.5 min-h-[44px] w-full rounded-xl border border-line-2 bg-[var(--bg-2)] px-3 font-mono text-[14px]" placeholder="(전체 / 일반 제보)" />
+      </div>
+      <div>
+        <label class="text-[14px] font-bold" for="r-what">무엇이 바뀌었나요? <span style="color:var(--red)">*</span></label>
+        <textarea id="r-what" name="what" required rows="4" class="mt-1.5 w-full rounded-xl border border-line-2 bg-[var(--surface)] p-3 text-[15px]" placeholder="예: 면허 교환 수수료가 2026년부터 42.60유로로 바뀌었어요"></textarea>
+      </div>
+      <div>
+        <label class="text-[14px] font-bold" for="r-src">근거 링크</label>
+        <input id="r-src" name="src" type="url" class="mt-1.5 min-h-[44px] w-full rounded-xl border border-line-2 bg-[var(--surface)] px-3 text-[15px]" placeholder="https://" />
+      </div>
+      <div>
+        <label class="text-[14px] font-bold" for="r-contact">연락처 (선택)</label>
+        <input id="r-contact" name="contact" class="mt-1.5 min-h-[44px] w-full rounded-xl border border-line-2 bg-[var(--surface)] px-3 text-[15px]" placeholder="답변을 원하면 이메일 등" />
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <button class="btn btn-ink flex-1" data-via="github">GitHub Issue로 보내기</button>
+        <button class="btn btn-ghost flex-1" data-via="mail">이메일로 보내기</button>
+      </div>
+      <p class="text-[12.5px] text-muted">GitHub Issue는 공개돼요. 공개를 원하지 않으면 이메일을 이용하세요.</p>
+    </form>
+  </div>
+  <script is:inline define:vars={{ repo: REPO }}>
+    const f = document.querySelector("[data-report]");
+    const card = new URLSearchParams(location.search).get("card") ?? "";
+    f.card.value = card;
+    f.addEventListener("click", (e) => {
+      const via = e.target.closest("[data-via]")?.dataset.via;
+      if (!via) return;
+      e.preventDefault();
+      if (!f.reportValidity()) return;
+      const body = `카드: ${card || "(일반)"}\n페이지: ${location.origin}/c/${card}/\n\n무엇이 바뀌었나:\n${f.what.value}\n\n근거 링크:\n${f.src.value || "-"}\n\n연락처:\n${f.contact.value || "-"}`;
+      const title = `[제보] ${card || "일반"}`;
+      if (via === "github") {
+        const p = new URLSearchParams({ template: "report.yml", title, card, what: f.what.value, source: f.src.value, contact: f.contact.value });
+        window.open(`https://github.com/${repo}/issues/new?${p}`, "_blank", "noopener");
+      } else {
+        location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+      }
+    });
+  </script>
+</Base>

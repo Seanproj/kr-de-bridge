@@ -1,0 +1,146 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import CardTile from "../components/CardTile.astro";
+import TrustBadge from "../components/TrustBadge.astro";
+import DirectionTag from "../components/DirectionTag.astro";
+import { loadData, CATEGORIES, href } from "../lib/data";
+
+const { cards, scenarios } = await loadData();
+const byId = new Map(cards.map((c) => [c.id, c]));
+
+const stats = {
+  cards: cards.length,
+  official: new Set(cards.flatMap((c) => c.sources.filter((s) => s.type === "official").map((s) => s.url))).size,
+  verified: cards.filter((c) => c.verification.status === "verified").length,
+  partial: cards.filter((c) => c.verification.status === "partial").length,
+  draft: cards.filter((c) => c.verification.status === "draft").length,
+};
+
+// 최근 확인된 정보: checkedAt 최신순 5개 (확인일 있는 카드가 부족하면 updatedAt 순으로 채우되 '업데이트'로 구분 표시)
+const checked = cards.filter((c) => c.verification.checkedAt).sort((a, b) => b.verification.checkedAt!.localeCompare(a.verification.checkedAt!));
+const filler = cards.filter((c) => !c.verification.checkedAt).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+const recent = [...checked, ...filler].slice(0, 5);
+
+const cats = (Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[])
+  .map((k) => ({ k, ...CATEGORIES[k], n: cards.filter((c) => c.category === k).length }))
+  .filter((c) => c.n > 0);
+
+const accents = [
+  "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--kr) 26%, transparent), transparent 60%)",
+  "radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--red) 22%, transparent), transparent 60%)",
+  "radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--de) 30%, transparent), transparent 60%)",
+];
+---
+<Base bare>
+  <Hero stats={stats} />
+
+  <!-- 시나리오 -->
+  <section class="wrap mt-14 sm:mt-20" aria-labelledby="scn-title">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <p class="eyebrow">01 · 상황별 시작하기</p>
+        <h2 id="scn-title" class="mt-2 text-[28px] font-extrabold tracking-[-0.03em] sm:text-[36px]">지금 어떤 상황인가요?</h2>
+      </div>
+    </div>
+    <div class="mt-6 grid gap-4 md:grid-cols-3">
+      {scenarios.map((s, i) => {
+        const steps = s.steps.map((st) => byId.get(st.cardId)!);
+        const totalSteps = steps.reduce((n, c) => n + c.steps.length, 0);
+        return (
+          <a href={href(`/s/${s.id}/`)} class="panel lift group relative flex flex-col overflow-hidden p-6" data-scn={s.id} data-total={s.steps.length}>
+            <div class="pointer-events-none absolute inset-0" style={`background:${accents[i % 3]}`}></div>
+            <div class="relative flex items-start justify-between">
+              <span class="grid h-14 w-14 place-items-center rounded-2xl text-[30px]" style="background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)">{s.icon}</span>
+              <span class="font-mono text-[11px] text-muted">S{String(i + 1).padStart(2, "0")}</span>
+            </div>
+            <h3 class="relative mt-5 text-[21px] leading-snug font-extrabold tracking-tight">{s.title}</h3>
+            <p class="relative mt-2 text-[14.5px] leading-relaxed text-muted">{s.description}</p>
+            <ol class="relative mt-5 space-y-2 border-l border-line-2 pl-4 text-[13.5px] text-ink-2">
+              {steps.slice(0, 3).map((c) => (
+                <li class="relative before:absolute before:top-[7px] before:-left-[20.5px] before:h-2 before:w-2 before:rounded-full before:bg-[var(--line-2)]">{c.title.split(" — ")[0]}</li>
+              ))}
+              {steps.length > 3 && <li class="text-muted">+ {steps.length - 3}개 더</li>}
+            </ol>
+            <div class="relative mt-6 flex items-center justify-between gap-3 border-t border-line pt-4">
+              <span class="font-mono text-[12px] text-muted">카드 {steps.length}개 · 세부 {totalSteps}단계</span>
+              <span class="inline-flex items-center gap-1 text-[14px] font-bold">
+                <span data-progress-label>시작하기</span>
+                <span class="transition group-hover:translate-x-1">→</span>
+              </span>
+            </div>
+            <div class="absolute inset-x-0 bottom-0 h-1" style="background:var(--bg-2)"><div class="h-full w-0 bridge-bar transition-all duration-700" data-progress-bar></div></div>
+          </a>
+        );
+      })}
+    </div>
+  </section>
+
+  <!-- 카테고리 -->
+  <section class="mt-14" aria-labelledby="cat-title">
+    <div class="wrap">
+      <p class="eyebrow">02 · 카테고리</p>
+      <h2 id="cat-title" class="sr-only">카테고리</h2>
+    </div>
+    <div class="no-scrollbar mt-3 overflow-x-auto">
+      <div class="wrap flex w-max gap-2 pb-1 sm:w-full sm:flex-wrap">
+        {cats.map((c) => (
+          <a href={href(`/k/${c.k}/`)} class="chip min-h-[44px] !px-4 !text-[14px] transition hover:border-[var(--ink)]">
+            <span aria-hidden="true">{c.icon}</span>{c.label}<span class="font-mono text-[11px] text-muted">{c.n}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 최근 확인 -->
+  <section class="wrap mt-14" aria-labelledby="recent-title">
+    <p class="eyebrow">03 · 최근 확인된 정보</p>
+    <h2 id="recent-title" class="mt-2 text-[24px] font-extrabold tracking-[-0.03em]">공식 출처와 대조한 순서</h2>
+    <ul class="panel mt-5 divide-y divide-[var(--line)] overflow-hidden">
+      {recent.map((c) => (
+        <li>
+          <a href={href(`/c/${c.id}/`)} class="group flex items-center gap-4 p-4 transition hover:bg-[var(--surface-2)] sm:px-5">
+            <span class="hidden w-[92px] flex-none font-mono text-[12px] text-muted sm:block">
+              {c.verification.checkedAt ? <>✓ {c.verification.checkedAt}</> : <>↻ {c.updatedAt}</>}
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-[15.5px] font-bold">{c.title}</span>
+              <span class="mt-1 flex flex-wrap items-center gap-2">
+                <DirectionTag d={c.direction} size="sm" />
+                <TrustBadge v={c.verification} compact />
+                <span class="font-mono text-[11px] text-muted sm:hidden">{c.verification.checkedAt ? `확인 ${c.verification.checkedAt}` : `업데이트 ${c.updatedAt}`}</span>
+              </span>
+            </span>
+            <span class="text-muted transition group-hover:translate-x-1 group-hover:text-ink">→</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- 전체 -->
+  <section class="wrap mt-16" aria-labelledby="all-title">
+    <p class="eyebrow">04 · 전체 카드</p>
+    <h2 id="all-title" class="mt-2 text-[24px] font-extrabold tracking-[-0.03em]">모든 정보 카드 {cards.length}개</h2>
+    {cats.map((cat) => (
+      <div class="mt-8">
+        <h3 class="mb-3 flex items-center gap-2 text-[15px] font-bold text-ink-2"><span aria-hidden="true">{cat.icon}</span>{cat.label}</h3>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {cards.filter((c) => c.category === cat.k).map((c) => <CardTile card={c} />)}
+        </div>
+      </div>
+    ))}
+  </section>
+</Base>
+
+<script>
+  import { readSet } from "../lib/store";
+  for (const el of document.querySelectorAll<HTMLElement>("[data-scn]")) {
+    const done = readSet(`scn:${el.dataset.scn}`).size;
+    const total = Number(el.dataset.total);
+    if (!done) continue;
+    el.querySelector<HTMLElement>("[data-progress-bar]")!.style.width = `${Math.min(100, (done / total) * 100)}%`;
+    el.querySelector("[data-progress-label]")!.textContent = done >= total ? "완료 ✓" : `이어하기 ${done}/${total}`;
+  }
+</script>

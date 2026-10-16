@@ -1,0 +1,88 @@
+---
+import Base from "../../layouts/Base.astro";
+import TrustBadge from "../../components/TrustBadge.astro";
+import DirectionTag from "../../components/DirectionTag.astro";
+import Disclaimer from "../../components/Disclaimer.astro";
+import { loadData, href, type Scenario } from "../../lib/data";
+
+export async function getStaticPaths() {
+  const { scenarios } = await loadData();
+  return scenarios.map((s) => ({ params: { id: s.id }, props: { s } }));
+}
+const { s } = Astro.props as { s: Scenario };
+const { cards } = await loadData();
+const items = s.steps.map((st) => ({ ...st, card: cards.find((c) => c.id === st.cardId)! }));
+---
+<Base title={s.title} description={s.description}>
+  <div class="narrow pb-28" data-pagefind-body>
+    <nav class="text-[13px] text-muted" data-pagefind-ignore><a href={href("/")} class="hover:text-ink">홈</a> / 상황별 시작하기</nav>
+
+    <header class="panel relative mt-4 overflow-hidden p-6 sm:p-8">
+      <div class="pointer-events-none absolute inset-0 opacity-90" style="background:radial-gradient(90% 120% at 100% 0%, color-mix(in oklab, var(--de) 20%, transparent), transparent 55%),radial-gradient(90% 120% at 0% 100%, color-mix(in oklab, var(--kr) 18%, transparent), transparent 55%)"></div>
+      <div class="relative">
+        <span class="text-[44px]" aria-hidden="true">{s.icon}</span>
+        <h1 class="mt-3 text-[30px] leading-[1.15] font-extrabold tracking-[-0.035em] sm:text-[38px]">{s.title}</h1>
+        <p class="mt-3 text-[16px] leading-relaxed text-ink-2">{s.description}</p>
+
+        <div class="mt-7" data-pagefind-ignore>
+          <div class="flex items-end justify-between">
+            <p class="text-[14px] font-semibold"><span class="text-[30px] font-extrabold tracking-tight tabular-nums" data-done>0</span><span class="text-muted"> / {items.length} 완료</span></p>
+            <button type="button" class="min-h-[44px] px-2 text-[13px] font-semibold text-muted hover:text-ink" data-reset>처음부터</button>
+          </div>
+          <div class="mt-2 h-2.5 overflow-hidden rounded-full" style="background:var(--bg-2)" role="progressbar" aria-label="진행률" aria-valuemin="0" aria-valuemax={items.length} aria-valuenow="0" data-bar-wrap>
+            <div class="h-full w-0 rounded-full bridge-bar transition-all duration-500" data-bar></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <ol class="mt-8 space-y-3" data-check-group={`scn:${s.id}`}>
+      {items.map((it, i) => (
+        <li class="panel group/item relative overflow-hidden has-[:checked]:opacity-75">
+          <div class="flex gap-4 p-4 sm:p-5">
+            <div class="flex flex-col items-center gap-2 pt-0.5">
+              <span class="font-mono text-[12px] font-bold text-muted">{String(i + 1).padStart(2, "0")}</span>
+              <label class="grid h-11 w-11 cursor-pointer place-items-center" title="완료 표시">
+                <input type="checkbox" class="check" data-check={it.cardId} aria-label={`${it.card.title} 완료`} />
+              </label>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-1.5"><DirectionTag d={it.card.direction} size="sm" /><TrustBadge v={it.card.verification} compact /></div>
+              <h2 class="mt-2 text-[17px] leading-snug font-bold tracking-tight">{it.card.title}</h2>
+              <p class="mt-2 flex gap-2 text-[14px] leading-relaxed text-ink-2"><span class="flex-none font-bold" style="color:var(--red)">왜 지금?</span><span>{it.why}</span></p>
+              <a href={href(`/c/${it.cardId}/`)} class="mt-3 inline-flex min-h-[44px] items-center gap-1 text-[14px] font-bold underline-offset-4 hover:underline">
+                카드 보기 · {it.card.steps.length}단계, 실수 {it.card.mistakes.length}개 <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="mt-3 text-[12.5px] text-muted">진행 상태는 이 기기의 브라우저에만 저장돼요.</p>
+
+    <div class="mt-10"><Disclaimer /></div>
+  </div>
+
+  <div class="fixed inset-x-0 bottom-0 z-30 border-t border-line backdrop-blur-xl" style="background:color-mix(in oklab, var(--bg) 85%, transparent);padding-bottom:env(safe-area-inset-bottom)">
+    <div class="narrow flex gap-2 py-3">
+      <button type="button" class="btn btn-ink flex-1" data-share data-title={s.title} data-text={s.description}><span data-share-label>공유하기</span></button>
+      <a class="btn btn-ghost flex-1" href={href("/report/")}>정보 제보</a>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { bindChecklist } from "../../lib/store";
+  import { bindShare } from "../../lib/share";
+  const group = document.querySelector<HTMLElement>("[data-check-group]")!;
+  const bar = document.querySelector<HTMLElement>("[data-bar]")!;
+  const wrap = document.querySelector<HTMLElement>("[data-bar-wrap]")!;
+  const done = document.querySelector("[data-done]")!;
+  const reset = bindChecklist(group, (d, t) => {
+    bar.style.width = `${(d / t) * 100}%`;
+    wrap.setAttribute("aria-valuenow", String(d));
+    done.textContent = String(d);
+  });
+  document.querySelector("[data-reset]")!.addEventListener("click", () => confirm("진행 상태를 지울까요?") && reset());
+  bindShare();
+</script>

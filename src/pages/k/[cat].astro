@@ -1,0 +1,28 @@
+---
+import Base from "../../layouts/Base.astro";
+import CardTile from "../../components/CardTile.astro";
+import { loadData, CATEGORIES, href } from "../../lib/data";
+
+export async function getStaticPaths() {
+  const { cards } = await loadData();
+  return (Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[])
+    .filter((k) => cards.some((c) => c.category === k))
+    .map((cat) => ({ params: { cat } }));
+}
+const cat = Astro.params.cat as keyof typeof CATEGORIES;
+const { cards } = await loadData();
+const list = cards.filter((c) => c.category === cat);
+const meta = CATEGORIES[cat];
+const others = (Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[]).filter((k) => k !== cat && cards.some((c) => c.category === k));
+---
+<Base title={meta.label} description={`${meta.label} 관련 정보 카드 ${list.length}개`}>
+  <div class="wrap">
+    <nav class="text-[13px] text-muted"><a href={href("/")} class="hover:text-ink">홈</a> / 카테고리</nav>
+    <h1 class="mt-4 flex items-center gap-3 text-[32px] font-extrabold tracking-[-0.035em]"><span aria-hidden="true">{meta.icon}</span>{meta.label}</h1>
+    <p class="mt-2 text-muted">정보 카드 {list.length}개</p>
+    <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{list.map((c, i) => <CardTile card={c} index={i} />)}</div>
+    <div class="mt-12 flex flex-wrap gap-2">
+      {others.map((k) => <a href={href(`/k/${k}/`)} class="chip min-h-[44px] !px-4">{CATEGORIES[k].icon} {CATEGORIES[k].label}</a>)}
+    </div>
+  </div>
+</Base>

@@ -1,0 +1,16 @@
+---
+interface Props { size?: number }
+const { size = 28 } = Astro.props;
+const gid = "lg" + Math.random().toString(36).slice(2, 7);
+---
+<svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
+  <defs>
+    <linearGradient id={gid} x1="0" x2="1">
+      <stop offset="0" stop-color="var(--kr)" /><stop offset=".52" stop-color="var(--red)" /><stop offset="1" stop-color="var(--de)" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="9" fill="var(--ink)" />
+  <path d="M6 22 Q16 4 26 22" fill="none" stroke={`url(#${gid})`} stroke-width="3.2" stroke-linecap="round" />
+  <path d="M5 23.5 H27" stroke="var(--bg)" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round" />
+  <circle cx="6" cy="22" r="2.6" fill="var(--kr)" /><circle cx="26" cy="22" r="2.6" fill="var(--de)" />
+</svg>

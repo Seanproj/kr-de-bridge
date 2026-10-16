@@ -1,0 +1,42 @@
+[
+  {
+    "id": "just-arrived",
+    "title": "독일에 막 도착했어요",
+    "icon": "🛬",
+    "description": "도착 후 첫 3개월 안에 처리하면 좋은 일들을 순서대로 모았어요.",
+    "steps": [
+      { "cardId": "anmeldung-darmstadt", "why": "거주지 등록 확인서가 거의 모든 다음 절차에 필요해요." },
+      { "cardId": "overseas-registration", "why": "한국 영사 서비스를 받기 위한 기본 등록이에요." },
+      { "cardId": "nhis-suspension", "why": "3개월 이상 체류라면 한국 건강보험료가 계속 나가지 않게 정리해요." },
+      { "cardId": "nps-germany-agreement", "why": "독일에서 일한다면 어느 나라 연금에 가입하는지 처음에 정해져요." },
+      { "cardId": "license-exchange", "why": "독일 거주를 시작한 날부터 6개월이 지나면 한국 면허로 운전할 수 없어요." },
+      { "cardId": "korean-cert-abroad", "why": "한국 온라인 업무가 막히기 전에 인증 수단을 정리해요." }
+    ]
+  },
+  {
+    "id": "korea-assets",
+    "title": "한국에 집·계좌·가족 업무가 있어요",
+    "icon": "🏠",
+    "description": "독일에 있으면서 한국의 부동산, 은행, 서류 업무를 처리하는 방법이에요.",
+    "steps": [
+      { "cardId": "korean-cert-abroad", "why": "모든 온라인 업무의 출발점이에요." },
+      { "cardId": "power-of-attorney", "why": "직접 갈 수 없는 업무는 가족에게 위임해요." },
+      { "cardId": "inkam-abroad", "why": "부동산 계약 등에는 인감증명이 함께 필요할 수 있어요." },
+      { "cardId": "family-cert-abroad", "why": "위임·계약 과정에서 가족관계 서류를 요구받는 경우가 많아요." },
+      { "cardId": "remittance", "why": "임대 수입이나 생활비를 옮기는 방법을 정해요." }
+    ]
+  },
+  {
+    "id": "going-home",
+    "title": "귀국을 준비하고 있어요",
+    "icon": "🧳",
+    "description": "독일을 떠나기 2~3개월 전부터 순서대로 정리할 일이에요.",
+    "steps": [
+      { "cardId": "return-checklist", "why": "해지 기한이 긴 계약부터 정리해야 요금이 남지 않아요." },
+      { "cardId": "nps-germany-agreement", "why": "독일 연금 환급과 기간 합산 중 무엇이 나은지 떠나기 전에 정해요." },
+      { "cardId": "apostille-de-docs", "why": "한국에 낼 독일 서류는 독일에 있을 때 준비하는 게 훨씬 쉬워요." },
+      { "cardId": "nhis-suspension", "why": "귀국 후 건강보험 급여를 다시 받는 절차를 확인해요." },
+      { "cardId": "remittance", "why": "보증금·환급금을 한국으로 옮기는 방법을 정해요." }
+    ]
+  }
+]

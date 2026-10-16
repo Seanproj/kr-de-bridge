@@ -1,0 +1,29 @@
+---
+import Logo from "./Logo.astro";
+import { href } from "../lib/data";
+const path = Astro.url.pathname;
+const nav = [
+  { to: "/", label: "홈" },
+  { to: "/search/", label: "검색" },
+  { to: "/about/", label: "소개" },
+];
+---
+<header class="sticky top-0 z-40 border-b border-line backdrop-blur-xl" style="background: color-mix(in oklab, var(--bg) 82%, transparent)">
+  <div class="wrap flex h-14 items-center justify-between gap-3">
+    <a href={href("/")} class="flex min-h-[44px] items-center gap-2.5 font-bold tracking-tight">
+      <Logo />
+      <span class="text-[15px]">한독 행정 브릿지</span>
+      <span class="hidden rounded-md px-1.5 py-0.5 font-mono text-[10px] text-muted sm:inline" style="background:var(--bg-2)">BETA</span>
+    </a>
+    <nav class="flex items-center gap-1 text-[14px] font-semibold">
+      {nav.map((n) => {
+        const active = n.to === "/" ? path === href("/") : path.startsWith(href(n.to));
+        return (
+          <a href={href(n.to)} class:list={["grid min-h-[44px] place-items-center rounded-xl px-3 transition", active ? "text-ink" : "text-muted hover:text-ink"]}>
+            {n.label}
+          </a>
+        );
+      })}
+    </nav>
+  </div>
+</header>

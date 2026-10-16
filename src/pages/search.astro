@@ -1,0 +1,29 @@
+---
+import Base from "../layouts/Base.astro";
+import { href } from "../lib/data";
+---
+<Base title="검색" description="아포스티유, 면허, 연금 등 키워드로 정보 카드를 찾아보세요.">
+  <link slot="head" rel="stylesheet" href={href("/pagefind/pagefind-ui.css")} />
+  <div class="narrow">
+    <p class="eyebrow">SEARCH</p>
+    <h1 class="mt-2 text-[32px] font-extrabold tracking-[-0.035em]">무엇을 찾고 있나요?</h1>
+    <p class="mt-2 text-[15px] text-muted">한국어·독일어 용어 모두 검색돼요. 예: 아포스티유, Anmeldung, 면허, 연금</p>
+    <div id="search" class="pf-wrap mt-6"></div>
+    <noscript><p class="mt-6 text-muted">검색은 자바스크립트가 필요해요.</p></noscript>
+  </div>
+  <script is:inline define:vars={{ base: href("/pagefind/") }}>
+    const s = document.createElement("script");
+    s.src = base + "pagefind-ui.js";
+    s.onload = () => {
+      const ui = new PagefindUI({
+        element: "#search", showSubResults: true, showImages: false, resetStyles: false,
+        bundlePath: base,
+        translations: { placeholder: "검색어를 입력하세요", zero_results: "[SEARCH_TERM]에 대한 결과가 없어요", many_results: "[COUNT]개 결과", one_result: "1개 결과", load_more: "더 보기", clear_search: "지우기" },
+      });
+      const q = new URLSearchParams(location.search).get("q");
+      if (q) ui.triggerSearch(q);
+    };
+    s.onerror = () => { document.getElementById("search").innerHTML = '<p class="text-muted">검색 색인은 빌드(npm run build) 후에 생성돼요.</p>'; };
+    document.head.appendChild(s);
+  </script>
+</Base>

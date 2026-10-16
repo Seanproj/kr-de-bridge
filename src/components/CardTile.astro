@@ -1,0 +1,25 @@
+---
+import { CATEGORIES, METHODS, href, type Card } from "../lib/data";
+import DirectionTag from "./DirectionTag.astro";
+import TrustBadge from "./TrustBadge.astro";
+interface Props { card: Card; index?: number }
+const { card, index } = Astro.props;
+---
+<a href={href(`/c/${card.id}/`)} class="panel lift group relative flex h-full flex-col gap-3 overflow-hidden p-5">
+  <div class="flex items-start justify-between gap-3">
+    <DirectionTag d={card.direction} size="sm" />
+    {index !== undefined && <span class="font-mono text-[11px] text-muted">{String(index + 1).padStart(2, "0")}</span>}
+  </div>
+  <div>
+    <p class="eyebrow mb-1.5">{CATEGORIES[card.category].label}</p>
+    <h3 class="text-[17px] leading-snug font-bold tracking-tight">{card.title}</h3>
+    <p class="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-muted">{card.summary}</p>
+  </div>
+  <div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-1">
+    <TrustBadge v={card.verification} compact />
+    <span class="flex gap-1 text-[13px]" title={card.methods.map((m) => METHODS[m].label).join(" · ")}>
+      {card.methods.map((m) => <span aria-label={METHODS[m].label}>{METHODS[m].icon}</span>)}
+    </span>
+  </div>
+  <span class="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bridge-bar transition-transform duration-500 group-hover:scale-x-100"></span>
+</a>

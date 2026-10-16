@@ -1,0 +1,38 @@
+---
+import { STATUS, STALE_DAYS, daysSince, type Card } from "../lib/data";
+interface Props { v: Card["verification"]; compact?: boolean }
+const { v, compact = false } = Astro.props;
+const s = STATUS[v.status];
+const label = v.status === "verified" && v.checkedAt ? `확인됨 ${v.checkedAt}` : s.label;
+const stale = v.checkedAt ? daysSince(v.checkedAt) >= STALE_DAYS : false;
+const styles: Record<string, string> = {
+  ok: "color:var(--ok);background:var(--ok-bg)",
+  warn: "color:var(--warn);background:var(--warn-bg)",
+  draft: "color:var(--draft);background:var(--draft-bg)",
+};
+---
+<span class="inline-flex flex-wrap items-center gap-1.5">
+  <span class:list={["inline-flex items-center gap-1.5 rounded-full font-bold", compact ? "px-2 py-0.5 text-[11.5px]" : "px-3 py-1 text-[13px]"]} style={styles[s.tone]}>
+    <span class="relative grid h-2 w-2 place-items-center">
+      <span class="absolute h-2 w-2 rounded-full bg-current"></span>
+      {v.status === "draft" && <span class="ping absolute h-2 w-2 rounded-full bg-current"></span>}
+    </span>
+    {label}
+  </span>
+  {!compact && v.checkedAt && v.status !== "verified" && (
+    <span class="font-mono text-[11.5px] text-muted">확인일 {v.checkedAt}</span>
+  )}
+  {v.checkedAt && (
+    <span data-stale-check={v.checkedAt} data-stale-days={STALE_DAYS} hidden={!stale}
+      class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] font-bold" style="color:var(--warn);background:var(--warn-bg)">
+      ⏳ 오래된 정보일 수 있음
+    </span>
+  )}
+</span>
+<script>
+  // 정적 빌드 이후 시간이 흘러도 180일 경고가 맞도록 브라우저에서 다시 계산
+  for (const el of document.querySelectorAll<HTMLElement>("[data-stale-check]")) {
+    const d = new Date(el.dataset.staleCheck + "T00:00:00Z").getTime();
+    el.hidden = (Date.now() - d) / 86_400_000 < Number(el.dataset.staleDays);
+  }
+</script>

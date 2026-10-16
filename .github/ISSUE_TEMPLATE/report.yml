@@ -1,0 +1,26 @@
+name: 정보 제보
+description: 카드 내용이 바뀌었거나 틀렸어요
+title: "[제보] "
+labels: ["제보"]
+body:
+  - type: input
+    id: card
+    attributes:
+      label: 카드 id
+      description: 카드 주소 /c/{id}/ 의 id (자동 입력)
+  - type: textarea
+    id: what
+    attributes:
+      label: 무엇이 바뀌었나요?
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: 근거 링크
+      description: 가능하면 정부·공공기관의 공식 안내
+  - type: input
+    id: contact
+    attributes:
+      label: 연락처 (선택)
+      description: 이 이슈는 공개돼요. 개인정보는 적지 마세요.

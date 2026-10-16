@@ -1,0 +1,23 @@
+name: 콘텐츠 점검 (월간)
+on:
+  schedule:
+    - cron: "17 6 1 * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: 링크·신선도 검사
+        run: node scripts/content-health.mjs > report.md || true
+      - name: Issue 등록
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if grep -q "문제 없음" report.md; then echo "이상 없음"; exit 0; fi
+          gh issue create --title "콘텐츠 점검 $(date +%Y-%m)" --body-file report.md --label "콘텐츠 점검" || gh issue create --title "콘텐츠 점검 $(date +%Y-%m)" --body-file report.md

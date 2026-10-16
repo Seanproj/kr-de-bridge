@@ -1,0 +1,38 @@
+---
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { href } from "../lib/data";
+
+interface Props { title?: string; description?: string; bare?: boolean; ogImage?: string }
+const { title, description = "독일에 사는 한국인을 위한 행정 정보 카드 — 필요 서류, 어디서, 얼마나 걸리는지, 자주 하는 실수까지.", bare = false, ogImage = "/og.png" } = Astro.props;
+const fullTitle = title ? `${title} · 한독 행정 브릿지` : "한독 행정 브릿지 — 한국 일은 독일에서, 독일 일은 한국인의 눈으로";
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const og = Astro.site ? new URL(href(ogImage), Astro.site).href : href(ogImage);
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#080b13" media="(prefers-color-scheme: dark)" />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" href={href("/favicon.svg")} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={href("/icons/apple-touch-icon.png")} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content={title ?? "한독 행정 브릿지"} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={og} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <slot name="head" />
+  </head>
+  <body class="min-h-dvh">
+    <Header />
+    <main class:list={[!bare && "pt-6"]}><slot /></main>
+    <Footer />
+  </body>
+</html>
